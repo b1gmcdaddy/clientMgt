@@ -1,28 +1,44 @@
 <template>
     <div>
-        <h1>Companies</h1>
+        <h1 style="text-align: center; margin-top: 2em;">Companies</h1>
         <br />
         <br />
-        <form @submit.prevent="handleSubmit()">
-            <input placeholder="Enter new company" v-model="newCompany" />
-            <button type="submit">Add</button>
-        </form>
+        <v-sheet class="mx-auto" width="300">
+    <v-form @submit.prevent="isEditing ? updateCompany() : handleSubmit()">
+      <v-text-field
+        v-model="currentCompany.companyName"
+        :label="btnlabel"
+      ></v-text-field>
+      <v-btn style="background-color: #008000; color: white;" type="submit" block>{{ isEditing ? 'Update' : 'Add'}}</v-btn>
+    </v-form>
+  </v-sheet>
         <br />
         <br />
-        <ul>
-            <li v-for="company in companyList" :key="company.companyId" style="color: black; display: block;">
-                <input
-                    v-if="company.isEditing"
-                    v-model="company.companyName"
-                    @keyup.enter="updateCompany(company)"
-                    @blur="cancelEdit(company)"
-                />
-                <span v-else @dblclick="editCompany(company)">
-                    {{ company.companyName }}
-                </span>
-                <button @click="deleteCompany(company.companyId)">Delete</button>
-            </li>
-        </ul>
+
+        <v-table style="max-width: 600px; width: 100%; margin: auto; text-align: center;">
+    <thead>
+      <tr>
+        <th style="font-weight: bold; text-transform: uppercase; text-align: center; font-size: 18px;">
+          Company Name
+        </th>
+        <th style="font-weight: bold; text-transform: uppercase; text-align: center; font-size: 18px;">
+          Action 
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        v-for="company in companyList"
+        :key="company.companyId"
+      >
+        <td>{{ company.companyName }}</td>
+        <td>
+            <v-btn style="background-color: yellow; color: black; margin-right: 6px;" @click="edit(company)">Update</v-btn>
+            <v-btn style="background-color: red; color: white;" @click="deleteCompany(company.companyId)">Delete</v-btn>
+        </td>
+      </tr>
+    </tbody>
+  </v-table>
     </div>
 </template>
 
@@ -34,7 +50,11 @@ export default {
     data() {
         return {
             companyList: [],
-            newCompany: "",
+            currentCompany: {
+                companyName: '',
+            },
+            isEditing: false, 
+            selectedCompanyId: null,
         }
     },
     methods: {
@@ -48,26 +68,21 @@ export default {
         },
         async handleSubmit() {
             try {
-                const newCompanyData = { companyName: this.newCompany };
-                const response = await axios.post('https://localhost:7240/api/Company', newCompanyData);
+                const currentCompanyData = { companyName: this.currentCompany.companyName };
+                const response = await axios.post('https://localhost:7240/api/Company', currentCompanyData);
                 this.companyList.push(response.data);
-                this.newCompany = "";
+                this.currentCompany.companyName = "";
             } catch (error) {
                 console.log(error);
             }
         },
-        editCompany(company) {
-            company.isEditing = true;
-        },
-        cancelEdit(company) {
-            company.isEditing = false;
-            this.fetchCompanies(); 
-        },
-        async updateCompany(company) {
+        async updateCompany() {
             try {
-                const updatedCompanyData = { companyName: company.companyName };
-                await axios.put(`https://localhost:7240/api/Company/${company.companyId}`, updatedCompanyData);
-                company.isEditing = false;
+                const updatedCompanyData = { companyName: this.currentCompany.companyName };
+                await axios.put(`https://localhost:7240/api/Company/${this.selectedCompanyId}`, updatedCompanyData);
+                this.currentCompany.companyName = '';
+                this.isEditing = false;
+                this.fetchCompanies();
             } catch (error) {
                 console.log(error);
             }
@@ -80,6 +95,16 @@ export default {
             } catch (error) {
                 console.log(error);
             }
+        },
+        edit(company) {
+            this.currentCompany = { companyName: company.companyName };
+            this.selectedCompanyId = company.companyId;
+            this.isEditing = true; 
+        },
+    },
+    computed: {
+        btnlabel() {
+            return this.isEditing ? 'Update' : 'Add';
         }
     },
     mounted() {
