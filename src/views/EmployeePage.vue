@@ -1,70 +1,91 @@
 <template>
-    <div>
-        <h1>Employees</h1>
-        <table style="margin-left: 20%; text-align: justify;">
-            <thead>
-                <tr>
-                    <th style="padding-left: 40px;">FullName</th>
-                    <th style="padding-left: 40px;">Email</th>
-                    <th style="padding-left: 40px;">Addresses</th>
-                    <th style="padding-left: 40px;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="emp in empList" :key="emp.employeeId">
-                    <td style="padding-left: 40px;">{{ emp.firstName }} {{ emp.lastName }}</td>
-                    <td style="padding-left: 40px;">{{ emp.email }}</td>
-                    <td style="padding-left: 10px;">
-                        <ul v-if="emp.addresses && emp.addresses.length > 0">
-                            <li v-for="address in emp.addresses" :key="address.id">
-                                {{ address.street }} {{ address.city }} {{ address.postalCode }}
-                                <span v-if="address.isDefault" style="color: green;">(DEFAULT)</span>
-                            </li>
-                        </ul>
-                        <span v-else style="padding-left: 30px;">No addresses</span>
-                    </td>
-                    <td style="padding-left: 40px;">
-                        <button @click="editEmployee(emp)">Edit</button>
-                        <button @click="deleteEmployee(emp.employeeId)">Delete</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <br/>
-        <hr /> <br /> <br /><h3>employee form</h3><br/><br/>
-        <form @submit.prevent="isEditing ? updateEmployee() : createEmployee()">
-            <input v-model="currentEmp.firstName" type="text" placeholder="Enter firstname..." />
-            <input v-model="currentEmp.lastName" type="text" placeholder="Enter last name..." />
-            <input v-model="currentEmp.email" type="email" placeholder="Enter email..." />
-            <select v-model="selectedDepartment">
-                <option value="" disabled>Select a Department</option>
-                <option v-for="dept in deptList" :key="dept.departmentId" :value="dept.departmentId">
-                    {{ dept.departmentName }}
-                </option>
-            </select>
-            <button type="submit">{{ isEditing ? 'Update Employee' : 'Add Employee' }}</button>
-            <button v-if="isEditing" @click="cancelEdit">Cancel</button>
-        </form>
-        <br/><br/>
-        <hr /> <br /> <br /><br/><h3>addresses form</h3><br/><br/>
-        <form @submit.prevent="createAddress()">
-            <input v-model="currentAddress.street" type="text" placeholder="Enter street..." />
-            <input v-model="currentAddress.city" type="text" placeholder="Enter city..." />
-            <input v-model="currentAddress.postalCode" type="text" placeholder="Enter postal cde..." />
-            <select v-model="currentAddress.isDefault">
-                <option value="True">True</option>
-                <option value="False">False</option>
-            </select>
-            <select v-model="selectedEmp">
-                <option value="" disabled>Select an Employee</option>
-                <option v-for="emp in empList" :key="emp.employeeId" :value="emp.employeeId">
-                    {{ emp.firstName }} {{ emp.lastName }}
-                </option>
-            </select>
-            <button type="submit">Add Address</button>
-        </form>
-    </div>
+    <v-container>
+        <v-row>
+            <v-col cols="12">
+                <h1>Employees</h1>
+                <v-table>
+                    <thead>
+                        <tr>
+                            <th style="text-align: center; font-weight: bolder;">FullName</th>
+                            <th style="text-align: center; font-weight: bolder;">Email</th>
+                            <th style="text-align: center; font-weight: bolder;">Addresses</th>
+                            <th style="text-align: center; font-weight: bolder;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="emp in empList" :key="emp.employeeId">
+                            <td>{{ emp.firstName }} {{ emp.lastName }}</td>
+                            <td>{{ emp.email }}</td>
+                            <td>
+                                <v-list dense v-if="emp.addresses && emp.addresses.length > 0">
+                                    <v-list-item v-for="address in emp.addresses" :key="address.id">
+                                        <v-list-item-content>
+                                            {{ address.street }} {{ address.city }} {{ address.postalCode }}
+                                            <v-chip v-if="address.isDefault" color="green" label>(DEFAULT)</v-chip>
+                                        </v-list-item-content>
+                                    </v-list-item>
+                                </v-list>
+                                <span v-else>No addresses</span>
+                            </td>
+                            <td>
+                                <v-btn color="primary" @click="editEmployee(emp)">Edit</v-btn>
+                                <v-btn color="error" @click="deleteEmployee(emp.employeeId)">Delete</v-btn>
+                            </td>
+                        </tr>
+                    </tbody>
+                </v-table>
+            </v-col>
+        </v-row>
+
+        <v-divider class="my-6"></v-divider>
+
+        <v-row>
+            <v-col cols="12">
+                <h3>Employee Form</h3>
+                <v-form @submit.prevent="isEditing ? updateEmployee() : createEmployee()">
+                    <v-text-field v-model="currentEmp.firstName" label="Enter firstname..." outlined></v-text-field>
+                    <v-text-field v-model="currentEmp.lastName" label="Enter last name..." outlined></v-text-field>
+                    <v-text-field v-model="currentEmp.email" label="Enter email..." outlined type="email"></v-text-field>
+                    <select v-model="selectedDepartment">
+                        <option value="" disabled>Select a Department</option>
+                        <option v-for="dept in deptList" :key="dept.departmentId" :value="dept.departmentId">
+                            {{ dept.departmentName }}
+                        </option>
+                    </select>
+                    <v-btn type="submit" color="success">{{ isEditing ? 'Update Employee' : 'Add Employee' }}</v-btn>
+                    <v-btn v-if="isEditing" @click="cancelEdit" color="grey">Cancel</v-btn>
+                </v-form>
+            </v-col>
+        </v-row>
+
+        <v-divider class="my-6"></v-divider>
+
+        <v-row>
+            <v-col cols="12">
+                <h3>Addresses Form</h3>
+                <v-form @submit.prevent="createAddress()">
+                    <v-text-field v-model="currentAddress.street" label="Enter street..." outlined></v-text-field>
+                    <v-text-field v-model="currentAddress.city" label="Enter city..." outlined></v-text-field>
+                    <v-text-field v-model="currentAddress.postalCode" label="Enter postal code..." outlined></v-text-field>
+                    <select v-model="currentAddress.isDefault">
+                        <option value="" disabled>Default?</option>
+                        <option value="True">True</option>
+                        <option value="False">False</option>
+                    </select>
+                    <select v-model="selectedEmp">
+                        <option value="" disabled>Select an Employee</option>
+                        <option v-for="emp in empList" :key="emp.employeeId" :value="emp.employeeId">
+                            {{ emp.firstName }} {{ emp.lastName }}
+                        </option>
+                    </select>
+                    <v-btn type="submit" color="success">Add Address</v-btn>
+                </v-form>
+            </v-col>
+        </v-row>
+    </v-container>
 </template>
+
+
 
 <script>
 import axios from 'axios';
