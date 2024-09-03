@@ -30,8 +30,8 @@
                 </tr>
             </tbody>
         </table>
-
-        <hr /> <br /> <br />
+        <br/>
+        <hr /> <br /> <br /><h3>employee form</h3><br/><br/>
         <form @submit.prevent="isEditing ? updateEmployee() : createEmployee()">
             <input v-model="currentEmp.firstName" type="text" placeholder="Enter firstname..." />
             <input v-model="currentEmp.lastName" type="text" placeholder="Enter last name..." />
@@ -45,6 +45,24 @@
             <button type="submit">{{ isEditing ? 'Update Employee' : 'Add Employee' }}</button>
             <button v-if="isEditing" @click="cancelEdit">Cancel</button>
         </form>
+        <br/><br/>
+        <hr /> <br /> <br /><br/><h3>addresses form</h3><br/><br/>
+        <form @submit.prevent="createAddress()">
+            <input v-model="currentAddress.street" type="text" placeholder="Enter street..." />
+            <input v-model="currentAddress.city" type="text" placeholder="Enter city..." />
+            <input v-model="currentAddress.postalCode" type="text" placeholder="Enter postal cde..." />
+            <select v-model="currentAddress.isDefault">
+                <option value="True">True</option>
+                <option value="False">False</option>
+            </select>
+            <select v-model="selectedEmp">
+                <option value="" disabled>Select an Employee</option>
+                <option v-for="emp in empList" :key="emp.employeeId" :value="emp.employeeId">
+                    {{ emp.firstName }} {{ emp.lastName }}
+                </option>
+            </select>
+            <button type="submit">Add Address</button>
+        </form>
     </div>
 </template>
 
@@ -57,6 +75,7 @@ export default {
         return {
             empList: [],
             deptList: [],
+            addressList: [],
             currentEmp: {
                 firstName: '',
                 lastName: '',
@@ -64,7 +83,15 @@ export default {
             },
             selectedDepartment: '',
             isEditing: false,
-            selectedEmployeeId: null
+            selectedEmployeeId: null,
+            isEditingAddress: false,
+            currentAddress: {
+                street: '',
+                city: '',
+                postalCode: '',
+                isDefault: true,
+            },
+            selectedEmp: '',
         }
     },
     methods: {
@@ -80,6 +107,14 @@ export default {
             try {
                 const response = await axios.get(`https://localhost:7240/api/Department`);
                 this.deptList = response.data;
+            } catch (e) {
+                console.log(e);
+            }
+        },
+        async fetchAddresses() {
+            try {
+                const res = await axios.get(`https://localhost:7240/api/Address`);
+                this.addressList = res.data;
             } catch (e) {
                 console.log(e);
             }
@@ -124,6 +159,24 @@ export default {
                 console.log(e);
             }
         },
+        async createAddress() {
+            try {
+                const newAddress = {
+                    street: this.currentAddress.street,
+                    city: this.currentAddress.city,
+                    postalCode: this.currentAddress.postalCode,
+                    isDefault: this.currentAddress.isDefault
+                };
+                await axios.post(`https://localhost:7240/api/Address/${this.selectedEmp}`, newAddress);
+                this.currentAddress.street = '';
+                this.currentAddress.city = '';
+                this.currentAddress.postalCode = '';
+                this.currentAddress.isDefault = '';
+                this.fetchEmployees();
+            } catch (e) {
+                console.log(e);
+            }
+        },
         editEmployee(emp) {
             this.currentEmp = { firstName: emp.firstName, lastName: emp.lastName, email: emp.email };
             this.selectedDepartment = emp.departmentId;
@@ -143,6 +196,7 @@ export default {
     mounted() {
         this.fetchEmployees();
         this.fetchDepartments();
+        this.fetchAddresses();
     }
 }
 </script>
